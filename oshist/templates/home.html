@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}ホーム - oshiSt{% endblock %}
+{% block content %}
+<h1>ダッシュボード</h1>
+
+<section class="dashboard-grid">
+    <div class="card">
+        <h2>{{ year }}年{{ month }}月の予算</h2>
+        {% if budget_summary %}
+            <p>今月の予算 <strong>{{ format_yen(budget_summary.budget_amount) }}</strong></p>
+            <p>使用済み <strong>{{ format_yen(budget_summary.used_amount) }}</strong></p>
+            <p>残り <strong class="{{ 'over-budget' if budget_summary.remaining_amount < 0 else '' }}">
+                {{ format_yen(budget_summary.remaining_amount) }}
+            </strong></p>
+            <p>使用率 <strong>{{ '%.1f'|format(budget_summary.usage_rate) }}%</strong></p>
+            {% if budget_message %}
+                <p class="budget-message">{{ budget_message }}</p>
+            {% endif %}
+        {% else %}
+            <p>予算が未設定です。<a href="{{ url_for('budget.index') }}">予算を設定する</a></p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>今月の購入額</h2>
+        <p class="big-number">{{ format_yen(monthly_spending) }}</p>
+    </div>
+
+    <div class="card">
+        <h2>総アイテム数</h2>
+        <p class="big-number">{{ total_items }} 件</p>
+    </div>
+</section>
+
+<section class="card">
+    <h2>最近追加したアイテム</h2>
+    {% if recent_items %}
+        <ul class="item-list">
+            {% for item in recent_items %}
+            <li>
+                <a href="{{ url_for('items.detail', item_id=item.id) }}">{{ item.name }}</a>
+                {% if item.draft_flg %}<span class="badge draft">下書き</span>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>まだアイテムがありません。<a href="{{ url_for('items.create') }}">追加する</a></p>
+    {% endif %}
+</section>
+{% endblock %}

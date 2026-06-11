@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}アイテム一覧 - oshiSt{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>アイテム一覧</h1>
+    <a class="button" href="{{ url_for('items.create') }}">新規追加</a>
+</div>
+
+{% if items %}
+<div class="item-grid">
+    {% for item in items %}
+    <article class="item-card">
+        <a href="{{ url_for('items.detail', item_id=item.id) }}">
+            {% if item.image_path %}
+                <img src="{{ url_for('images.serve_image', filename=item.image_path) }}" alt="">
+            {% else %}
+                <div class="no-image">No Image</div>
+            {% endif %}
+            <h3>{{ item.name }}</h3>
+            <p>数量: {{ item.quantity }}</p>
+            {% if item.purchase_route_code %}
+                <p>{{ route_label(item.purchase_route_code) }}</p>
+            {% endif %}
+            {% if item.draft_flg %}<span class="badge draft">下書き</span>{% endif %}
+        </a>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<p>アイテムがありません。</p>
+{% endif %}
+{% endblock %}

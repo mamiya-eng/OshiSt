@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}oshiSt{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% if session.get('user_id') %}
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="{{ url_for('home.index') }}" class="logo">oshiSt</a>
+            <nav>
+                <a href="{{ url_for('home.index') }}">ホーム</a>
+                <a href="{{ url_for('items.list_items') }}">アイテム</a>
+                <a href="{{ url_for('items.create') }}">追加</a>
+                <a href="{{ url_for('budget.index') }}">予算</a>
+            </nav>
+            <form method="post" action="{{ url_for('auth.logout') }}" class="logout-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <span class="user-name">{{ session.get('user_name') }}</span>
+                <button type="submit">ログアウト</button>
+            </form>
+        </div>
+    </header>
+    {% endif %}
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for category, message in messages %}
+                        <li class="flash {{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

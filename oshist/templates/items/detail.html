@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ item.name }} - oshiSt{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>{{ item.name }}</h1>
+    <a class="button" href="{{ url_for('items.edit', item_id=item.id) }}">編集</a>
+</div>
+
+<div class="detail-layout">
+    <div>
+        {% if item.image_path %}
+            <img class="detail-image" src="{{ url_for('images.serve_image', filename=item.image_path) }}" alt="">
+        {% else %}
+            <div class="no-image large">No Image</div>
+        {% endif %}
+    </div>
+    <dl class="detail-list">
+        <dt>状態</dt>
+        <dd>{% if item.draft_flg %}下書き{% else %}本登録{% endif %}</dd>
+
+        <dt>数量</dt>
+        <dd>{{ item.quantity }}</dd>
+
+        <dt>購入日</dt>
+        <dd>{{ item.purchase_date or '-' }}</dd>
+
+        <dt>金額</dt>
+        <dd>{% if item.price is not none %}{{ item.price }}円{% else %}-{% endif %}</dd>
+
+        <dt>購入ルート</dt>
+        <dd>{{ route_label }}</dd>
+
+        <dt>購入先</dt>
+        <dd>{{ item.store_name or '-' }}</dd>
+
+        <dt>URL</dt>
+        <dd>
+            {% if item.purchase_url %}
+                <a href="{{ item.purchase_url }}" rel="noopener noreferrer">{{ item.purchase_url }}</a>
+            {% else %}
+                -
+            {% endif %}
+        </dd>
+
+        <dt>配送ステータス</dt>
+        <dd>{{ item.delivery_status }}</dd>
+
+        <dt>メモ</dt>
+        <dd>{{ item.memo or '-' }}</dd>
+    </dl>
+</div>
+
+<p><a href="{{ url_for('items.list_items') }}">一覧に戻る</a></p>
+{% endblock %}

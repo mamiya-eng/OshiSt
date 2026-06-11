@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{% if item %}編集{% else %}追加{% endif %} - oshiSt{% endblock %}
+{% block content %}
+<h1>{% if item %}アイテム編集{% else %}アイテム追加{% endif %}</h1>
+
+<form method="post" enctype="multipart/form-data" class="item-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <fieldset>
+        <legend>最小入力（下書き保存可）</legend>
+        <label>商品名 *
+            <input type="text" name="name" required value="{{ item.name if item else '' }}">
+        </label>
+        <label>数量 *
+            <input type="number" name="quantity" min="1" value="{{ item.quantity if item else 1 }}">
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>本登録用</legend>
+        <label>金額
+            <input type="number" name="price" min="0" step="1" value="{{ item.price if item and item.price is not none else '' }}">
+        </label>
+        <label>購入日
+            <input type="date" name="purchase_date" value="{{ item.purchase_date if item and item.purchase_date else '' }}">
+        </label>
+        <label>購入ルート
+            <select name="purchase_route_code">
+                <option value="">選択してください</option>
+                {% for code, label in route_codes.items() %}
+                <option value="{{ code }}" {% if item and item.purchase_route_code == code %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <input type="checkbox" name="is_preorder" {% if item and item.delivery_status == 'pending' %}checked{% endif %}>
+            予約品として登録（配送ステータス: pending）
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>任意入力</legend>
+        <label>画像（JPEG / PNG / WEBP）
+            <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
+        </label>
+        {% if item and item.image_path %}
+            <p>現在の画像あり</p>
+        {% endif %}
+        <label>購入先（店舗名）
+            <input type="text" name="store_name" list="store-list" value="{{ item.store_name if item else '' }}">
+            <datalist id="store-list">
+                {% for store in stores %}
+                <option value="{{ store.name }}"></option>
+                {% endfor %}
+            </datalist>
+        </label>
+        <label>URL
+            <input type="url" name="purchase_url" value="{{ item.purchase_url if item and item.purchase_url else '' }}">
+        </label>
+        <label>メモ
+            <textarea name="memo" rows="4">{{ item.memo if item and item.memo else '' }}</textarea>
+        </label>
+    </fieldset>
+
+    <div class="form-actions">
+        <button type="submit" name="action" value="draft">下書き保存</button>
+        <button type="submit" name="action" value="register" class="primary">本登録</button>
+    </div>
+</form>
+{% endblock %}

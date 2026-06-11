@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}予算管理 - oshiSt{% endblock %}
+{% block content %}
+<h1>予算管理</h1>
+
+<form method="post" class="budget-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>年
+        <input type="number" name="year" value="{{ year }}" required>
+    </label>
+    <label>月
+        <input type="number" name="month" min="1" max="12" value="{{ month }}" required>
+    </label>
+    <label>予算額（円）
+        <input type="number" name="amount" min="1" step="1" required
+               value="{{ summary.budget_amount|int if summary else '' }}">
+    </label>
+    <button type="submit">保存</button>
+</form>
+
+{% if summary %}
+<section class="card budget-summary">
+    <h2>{{ year }}年{{ month }}月</h2>
+    <p>今月の予算 <strong>{{ format_yen(summary.budget_amount) }}</strong></p>
+    <p>使用済み <strong>{{ format_yen(summary.used_amount) }}</strong></p>
+    <p>残り <strong class="{{ 'over-budget' if summary.remaining_amount < 0 else '' }}">
+        {{ format_yen(summary.remaining_amount) }}
+    </strong></p>
+    <p>使用率 <strong>{{ '%.1f'|format(summary.usage_rate) }}%</strong></p>
+    {% if message %}
+        <p class="budget-message">{{ message }}</p>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}

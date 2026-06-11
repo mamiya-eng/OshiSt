@@ -1,0 +1,16 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: oshist-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: oshist
+      MYSQL_USER: oshist
+      MYSQL_PASSWORD: oshist
+    ports:
+      - "3306:3306"
+    volumes:
+      - oshist_mysql_data:/var/lib/mysql
+
+volumes:
+  oshist_mysql_data:
