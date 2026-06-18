@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 class Config:
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-in-production")
-    PERMANENT_SESSION_LIFETIME = 1800  # 30分
+    PERMANENT_SESSION_LIFETIME = 1800  # 30 minutes
 
     MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
     MYSQL_PORT = int(os.getenv("MYSQL_PORT", "3306"))
@@ -33,4 +33,4 @@ class Config:
         }
     )
 
-    DELIVERY_STATUSES = frozenset({"pending", "shipped", "delivered", "cancelled"})
+    DELIVERY_STATUSES = ("pending", "shipped", "delivered", "cancelled")

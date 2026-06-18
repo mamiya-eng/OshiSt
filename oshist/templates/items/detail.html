@@ -1,9 +1,15 @@
 {% extends "base.html" %}
-{% block title %}{{ item.name }} - oshiSt{% endblock %}
+{% block title %}{{ item.name }} - OshiSt{% endblock %}
 {% block content %}
 <div class="page-header">
     <h1>{{ item.name }}</h1>
-    <a class="button" href="{{ url_for('items.edit', item_id=item.id) }}">編集</a>
+    <div class="table-actions">
+        <a class="button" href="{{ url_for('items.edit', item_id=item.id) }}">編集</a>
+        <form method="post" action="{{ url_for('items.delete', item_id=item.id) }}" onsubmit="return confirm('このアイテムを削除しますか？');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="danger">削除</button>
+        </form>
+    </div>
 </div>
 
 <div class="detail-layout">
@@ -16,9 +22,18 @@
     </div>
     <dl class="detail-list">
         <dt>状態</dt>
-        <dd>{% if item.draft_flg %}下書き{% else %}本登録{% endif %}</dd>
+        <dd>{% if item.draft_flg %}下書き{% else %}登録済み{% endif %}</dd>
 
-        <dt>数量</dt>
+        <dt>シリーズ</dt>
+        <dd>{{ item.series_name or '未選択' }}</dd>
+
+        <dt>カテゴリ</dt>
+        <dd>{{ item.category_name or '未選択' }}</dd>
+
+        <dt>キャラ</dt>
+        <dd>{{ item.character_names or '未選択' }}</dd>
+
+        <dt>所持数</dt>
         <dd>{{ item.quantity }}</dd>
 
         <dt>購入日</dt>
@@ -28,10 +43,16 @@
         <dd>{% if item.price is not none %}{{ item.price }}円{% else %}-{% endif %}</dd>
 
         <dt>購入ルート</dt>
-        <dd>{{ route_label }}</dd>
+        <dd>{{ route_label if route_label != '-' else '未選択' }}</dd>
 
-        <dt>購入先</dt>
-        <dd>{{ item.store_name or '-' }}</dd>
+        <dt>購入店</dt>
+        <dd>{{ item.store_name or '未選択' }}</dd>
+
+        <dt>ブランド</dt>
+        <dd>{{ item.brand_name or '未選択' }}</dd>
+
+        <dt>バーコード</dt>
+        <dd>{{ item.barcode or '-' }}</dd>
 
         <dt>URL</dt>
         <dd>
@@ -43,12 +64,15 @@
         </dd>
 
         <dt>配送ステータス</dt>
-        <dd>{{ item.delivery_status }}</dd>
+        <dd>{{ delivery_status_label }}</dd>
+
+        <dt>配送予定日</dt>
+        <dd>{{ item.expected_delivery_date or '-' }}</dd>
 
         <dt>メモ</dt>
         <dd>{{ item.memo or '-' }}</dd>
     </dl>
 </div>
 
-<p><a href="{{ url_for('items.list_items') }}">一覧に戻る</a></p>
+<p><a class="button button-secondary" href="{{ url_for('items.list_items') }}">← 一覧に戻る</a></p>
 {% endblock %}

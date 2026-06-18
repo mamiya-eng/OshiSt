@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}配送管理 - OshiSt{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>配送管理</h1>
+</div>
+
+<form method="get" class="search-panel compact-form">
+    <label>配送ステータス
+        <select name="status">
+            <option value="">未着のみ</option>
+            {% for status in delivery_statuses %}
+            <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ delivery_status_labels.get(status, status) }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit" class="primary">絞り込み</button>
+</form>
+
+{% if items %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>アイテム</th>
+            <th>シリーズ</th>
+            <th>配送予定日</th>
+            <th>ステータス</th>
+            <th>リマインド</th>
+            <th>更新</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td><a href="{{ url_for('items.detail', item_id=item.id) }}">{{ item.name }}</a></td>
+            <td>{{ item.series_name or '-' }}</td>
+            <td>{{ item.expected_delivery_date or '-' }}</td>
+            <td>{{ delivery_status_labels.get(item.delivery_status, item.delivery_status) }}</td>
+            <td>{% if item.delivery_reminder_enabled %}ON{% else %}OFF{% endif %}</td>
+            <td>
+                <form method="post" action="{{ url_for('delivery.update', item_id=item.id, status=selected_status or '') }}" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="delivery_status">
+                        {% for status in delivery_statuses %}
+                        <option value="{{ status }}" {% if item.delivery_status == status %}selected{% endif %}>{{ delivery_status_labels.get(status, status) }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="date" name="expected_delivery_date" value="{{ item.expected_delivery_date if item.expected_delivery_date else '' }}">
+                    <label class="checkbox-label small">
+                        <input type="checkbox" name="delivery_reminder_enabled" {% if item.delivery_reminder_enabled %}checked{% endif %}>
+                        通知
+                    </label>
+                    <button type="submit">保存</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>配送管理対象のアイテムはありません。</p>
+{% endif %}
+{% endblock %}

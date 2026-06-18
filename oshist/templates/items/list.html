@@ -1,10 +1,56 @@
 {% extends "base.html" %}
-{% block title %}アイテム一覧 - oshiSt{% endblock %}
+{% block title %}アイテム一覧 - OshiSt{% endblock %}
 {% block content %}
 <div class="page-header">
     <h1>アイテム一覧</h1>
     <a class="button" href="{{ url_for('items.create') }}">新規追加</a>
 </div>
+
+<form method="get" class="search-panel">
+    <label>キーワード
+        <input type="search" name="q" value="{{ filters.q or '' }}" placeholder="アイテム名、シリーズ、カテゴリ、キャラ">
+    </label>
+    <label>シリーズ
+        <select name="series_id">
+            <option value="">すべて</option>
+            {% for series in series_list %}
+            <option value="{{ series.id }}" {% if filters.series_id == series.id %}selected{% endif %}>{{ series.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>カテゴリ
+        <select name="category_id">
+            <option value="">すべて</option>
+            {% for category in categories %}
+            <option value="{{ category.id }}" {% if filters.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>キャラ
+        <select name="character_id">
+            <option value="">すべて</option>
+            {% for character in characters %}
+            <option value="{{ character.id }}" {% if filters.character_id == character.id %}selected{% endif %}>{{ character.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>配送
+        <select name="delivery_status">
+            <option value="">すべて</option>
+            {% for status in delivery_statuses %}
+            <option value="{{ status }}" {% if filters.delivery_status == status %}selected{% endif %}>{{ delivery_status_labels.get(status, status) }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label class="checkbox-label">
+        <input type="checkbox" name="include_drafts" {% if filters.include_drafts %}checked{% endif %}>
+        下書きを含む
+    </label>
+    <div class="form-actions">
+        <button type="submit" class="primary">検索</button>
+        <a class="button button-secondary" href="{{ url_for('items.list_items') }}">クリア</a>
+    </div>
+</form>
 
 {% if items %}
 <div class="item-grid">
@@ -17,16 +63,21 @@
                 <div class="no-image">No Image</div>
             {% endif %}
             <h3>{{ item.name }}</h3>
-            <p>数量: {{ item.quantity }}</p>
+            <p>{{ item.series_name or 'シリーズ未設定' }} / {{ item.category_name or 'カテゴリ未設定' }}</p>
+            {% if item.character_names %}<p>キャラ: {{ item.character_names }}</p>{% endif %}
+            <p>所持数: {{ item.quantity }}</p>
             {% if item.purchase_route_code %}
                 <p>{{ route_label(item.purchase_route_code) }}</p>
             {% endif %}
             {% if item.draft_flg %}<span class="badge draft">下書き</span>{% endif %}
+            {% if item.delivery_status in ['pending', 'shipped'] %}
+                <span class="badge delivery">{{ delivery_status_labels.get(item.delivery_status, item.delivery_status) }}</span>
+            {% endif %}
         </a>
     </article>
     {% endfor %}
 </div>
 {% else %}
-<p>アイテムがありません。</p>
+<p>条件に一致するアイテムがありません。</p>
 {% endif %}
 {% endblock %}

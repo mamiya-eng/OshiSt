@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}シリーズ管理 - OshiSt{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>シリーズ管理</h1>
+</div>
+
+<form method="post" class="card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if editing %}<input type="hidden" name="series_id" value="{{ editing.id }}">{% endif %}
+    <label>シリーズ名
+        <input type="text" name="name" required maxlength="100" value="{{ editing.name if editing else '' }}">
+    </label>
+    <label>説明
+        <textarea name="description" rows="3">{{ editing.description if editing and editing.description else '' }}</textarea>
+    </label>
+    <div class="form-actions">
+        <button type="submit" class="primary">{% if editing %}更新{% else %}登録{% endif %}</button>
+        {% if editing %}<a class="button button-secondary" href="{{ url_for('masters.series_index') }}">キャンセル</a>{% endif %}
+    </div>
+</form>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>シリーズ名</th>
+            <th>説明</th>
+            <th>使用中アイテム</th>
+            <th>登録キャラ</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for series in series_list %}
+        <tr>
+            <td>{{ series.name }}</td>
+            <td>{{ series.description or '-' }}</td>
+            <td>{{ series.item_count }}</td>
+            <td>{{ series.character_count }}</td>
+            <td class="table-actions">
+                <a href="{{ url_for('masters.series_index', edit_id=series.id) }}">編集</a>
+                <form method="post" action="{{ url_for('masters.delete_series', series_id=series.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="danger">削除</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

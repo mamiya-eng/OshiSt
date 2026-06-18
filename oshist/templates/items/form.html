@@ -1,32 +1,37 @@
 {% extends "base.html" %}
-{% block title %}{% if item %}編集{% else %}追加{% endif %} - oshiSt{% endblock %}
+{% block title %}{% if item %}アイテム編集{% else %}アイテム追加{% endif %} - OshiSt{% endblock %}
 {% block content %}
-<h1>{% if item %}アイテム編集{% else %}アイテム追加{% endif %}</h1>
+<div class="page-header">
+    <h1>{% if item %}アイテム編集{% else %}アイテム追加{% endif %}</h1>
+    <a class="button button-secondary" href="{{ cancel_url }}">{{ cancel_label }}</a>
+</div>
+
+<p class="form-note">※推奨・任意項目は、登録後いつでも編集できます。</p>
 
 <form method="post" enctype="multipart/form-data" class="item-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <fieldset>
-        <legend>最小入力（下書き保存可）</legend>
-        <label>商品名 *
-            <input type="text" name="name" required value="{{ item.name if item else '' }}">
+        <legend>基本情報</legend>
+        <label>商品名 <span class="field-mark required">※必須</span>
+            <input type="text" name="name" required maxlength="200" value="{{ item.name if item else '' }}">
         </label>
-        <label>数量 *
+        <label>所持数 <span class="field-mark required">※必須</span>
             <input type="number" name="quantity" min="1" value="{{ item.quantity if item else 1 }}">
         </label>
     </fieldset>
 
     <fieldset>
-        <legend>本登録用</legend>
-        <label>金額
+        <legend>購入情報</legend>
+        <label>金額 <span class="field-mark recommended">※推奨</span>
             <input type="number" name="price" min="0" step="1" value="{{ item.price if item and item.price is not none else '' }}">
         </label>
-        <label>購入日
+        <label>購入日 <span class="field-mark recommended">※推奨</span>
             <input type="date" name="purchase_date" value="{{ item.purchase_date if item and item.purchase_date else '' }}">
         </label>
-        <label>購入ルート
+        <label>購入ルート <span class="field-mark recommended">※推奨</span>
             <select name="purchase_route_code">
-                <option value="">選択してください</option>
+                <option value="">選択しない</option>
                 {% for code, label in route_codes.items() %}
                 <option value="{{ code }}" {% if item and item.purchase_route_code == code %}selected{% endif %}>
                     {{ label }}
@@ -34,39 +39,94 @@
                 {% endfor %}
             </select>
         </label>
-        <label>
-            <input type="checkbox" name="is_preorder" {% if item and item.delivery_status == 'pending' %}checked{% endif %}>
-            予約品として登録（配送ステータス: pending）
-        </label>
     </fieldset>
 
     <fieldset>
-        <legend>任意入力</legend>
-        <label>画像（JPEG / PNG / WEBP）
+        <legend>詳細情報</legend>
+        <label>画像 <span class="field-mark optional">※任意</span>
             <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
         </label>
         {% if item and item.image_path %}
-            <p>現在の画像あり</p>
+            <p class="form-help">現在の画像があります。新しい画像を選ぶと差し替えられます。</p>
         {% endif %}
-        <label>購入先（店舗名）
-            <input type="text" name="store_name" list="store-list" value="{{ item.store_name if item else '' }}">
+
+        <label>シリーズ <span class="field-mark optional">※任意</span>
+            <select name="series_id">
+                <option value="">設定しない</option>
+                {% for series in series_list %}
+                <option value="{{ series.id }}" {% if item and item.series_id == series.id %}selected{% endif %}>{{ series.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>カテゴリ <span class="field-mark optional">※任意</span>
+            <select name="category_id">
+                <option value="">設定しない</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if item and item.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <div class="form-field">
+            <span class="field-label">キャラ <span class="field-mark optional">※任意</span></span>
+            <div class="character-checkbox-list">
+                {% for character in characters %}
+                <label class="character-checkbox-row">
+                    <input type="checkbox" name="character_ids" value="{{ character.id }}" {% if character.id in selected_character_ids %}checked{% endif %}>
+                    <span>{{ character.name }} / {{ character.series_name or 'シリーズ未選択' }}</span>
+                </label>
+                {% else %}
+                <p class="empty-option-message">選択できるキャラがありません。</p>
+                {% endfor %}
+            </div>
+        </div>
+        <label>購入店 <span class="field-mark optional">※任意</span>
+            <input type="text" name="store_name" list="store-list" value="{{ item.store_name if item and item.store_name else '' }}" maxlength="100">
             <datalist id="store-list">
                 {% for store in stores %}
                 <option value="{{ store.name }}"></option>
                 {% endfor %}
             </datalist>
         </label>
-        <label>URL
+        <label>ブランド <span class="field-mark optional">※任意</span>
+            <input type="text" name="brand_name" list="brand-list" value="{{ item.brand_name if item and item.brand_name else '' }}" maxlength="100">
+            <datalist id="brand-list">
+                {% for brand in brands %}
+                <option value="{{ brand.name }}"></option>
+                {% endfor %}
+            </datalist>
+        </label>
+        <label>バーコード <span class="field-mark optional">※任意</span>
+            <input type="text" name="barcode" value="{{ item.barcode if item and item.barcode else '' }}" maxlength="100">
+        </label>
+        <label>URL <span class="field-mark optional">※任意</span>
             <input type="url" name="purchase_url" value="{{ item.purchase_url if item and item.purchase_url else '' }}">
         </label>
-        <label>メモ
+        <input type="hidden" name="delivery_status" value="{% if item and item.delivery_status != 'pending' %}{{ item.delivery_status }}{% else %}delivered{% endif %}">
+        <label class="checkbox-row">
+            <input type="checkbox" name="is_reserved" {% if item and item.delivery_status == 'pending' %}checked{% endif %}>
+            <span>予約品として登録 <span class="field-mark optional">※任意</span></span>
+        </label>
+        <p class="form-help">予約中の商品にチェックしてください。チェックした場合、配送一覧で「発送待ち」として確認できます。</p>
+        <label>配送予定日 <span class="field-mark optional">※任意</span>
+            <input type="date" name="expected_delivery_date" value="{{ item.expected_delivery_date if item and item.expected_delivery_date else '' }}">
+        </label>
+        <label class="checkbox-label">
+            <input type="checkbox" name="delivery_reminder_enabled" {% if item and item.delivery_reminder_enabled %}checked{% endif %}>
+            配送リマインド <span class="field-mark optional">※任意</span>
+        </label>
+        <label>メモ <span class="field-mark optional">※任意</span>
             <textarea name="memo" rows="4">{{ item.memo if item and item.memo else '' }}</textarea>
         </label>
     </fieldset>
 
-    <div class="form-actions">
-        <button type="submit" name="action" value="draft">下書き保存</button>
-        <button type="submit" name="action" value="register" class="primary">本登録</button>
+    <div class="item-form-actions">
+        <div class="item-form-primary-actions">
+            <button type="submit" name="action" value="draft">下書き保存</button>
+            <button type="submit" name="action" value="register" class="primary">登録する</button>
+        </div>
+        <div class="item-form-return-action">
+            <a class="button button-secondary" href="{{ cancel_url }}">{{ cancel_label }}</a>
+        </div>
     </div>
 </form>
 {% endblock %}

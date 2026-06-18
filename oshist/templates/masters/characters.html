@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}キャラ管理 - OshiSt{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>キャラ管理</h1>
+</div>
+
+<form method="post" class="card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if editing %}<input type="hidden" name="character_id" value="{{ editing.id }}">{% endif %}
+    <label>キャラ名
+        <input type="text" name="name" required maxlength="100" value="{{ editing.name if editing else '' }}">
+    </label>
+    <label>シリーズ
+        <select name="series_id" required>
+            <option value="">選択してください</option>
+            {% for series in series_list %}
+            <option value="{{ series.id }}" {% if editing and editing.series_id == series.id %}selected{% endif %}>{{ series.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>推しカラー
+        <input type="color" name="color" value="{{ editing.color if editing and editing.color else '#4A90D9' }}">
+    </label>
+    <div class="form-actions">
+        <button type="submit" class="primary">{% if editing %}更新{% else %}登録{% endif %}</button>
+        {% if editing %}<a class="button button-secondary" href="{{ url_for('masters.characters_index') }}">キャンセル</a>{% endif %}
+    </div>
+</form>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>キャラ名</th>
+            <th>シリーズ</th>
+            <th>カラー</th>
+            <th>使用中アイテム</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for character in characters %}
+        <tr>
+            <td>{{ character.name }}</td>
+            <td>{{ character.series_name or '未選択' }}</td>
+            <td>{% if character.color %}<span class="color-chip" style="background: {{ character.color }}"></span>{{ character.color }}{% else %}-{% endif %}</td>
+            <td>{{ character.item_count }}</td>
+            <td class="table-actions">
+                <a href="{{ url_for('masters.characters_index', edit_id=character.id) }}">編集</a>
+                <form method="post" action="{{ url_for('masters.delete_character', character_id=character.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="danger">削除</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

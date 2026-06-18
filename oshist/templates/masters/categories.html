@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}カテゴリ管理 - OshiSt{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>カテゴリ管理</h1>
+</div>
+
+<form method="post" class="card compact-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if editing %}<input type="hidden" name="category_id" value="{{ editing.id }}">{% endif %}
+    <label>カテゴリ名
+        <input type="text" name="name" required maxlength="100" value="{{ editing.name if editing else '' }}">
+    </label>
+    <div class="form-actions">
+        <button type="submit" class="primary">{% if editing %}更新{% else %}登録{% endif %}</button>
+        {% if editing %}<a class="button button-secondary" href="{{ url_for('masters.categories_index') }}">キャンセル</a>{% endif %}
+    </div>
+</form>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>カテゴリ名</th>
+            <th>使用中アイテム</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for category in categories %}
+        <tr>
+            <td>{{ category.name }}</td>
+            <td>{{ category.item_count }}</td>
+            <td class="table-actions">
+                <a href="{{ url_for('masters.categories_index', edit_id=category.id) }}">編集</a>
+                <form method="post" action="{{ url_for('masters.delete_category', category_id=category.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="danger">削除</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -3,18 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}oshiSt{% endblock %}</title>
+    <title>{% block title %}OshiSt{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
+<body id="page-top">
     {% if session.get('user_id') %}
     <header class="site-header">
         <div class="container header-inner">
-            <a href="{{ url_for('home.index') }}" class="logo">oshiSt</a>
+            <a href="{{ url_for('home.index') }}" class="logo">OshiSt</a>
             <nav>
                 <a href="{{ url_for('home.index') }}">ホーム</a>
                 <a href="{{ url_for('items.list_items') }}">アイテム</a>
                 <a href="{{ url_for('items.create') }}">追加</a>
+                <a href="{{ url_for('masters.series_index') }}">シリーズ</a>
+                <a href="{{ url_for('masters.categories_index') }}">カテゴリ</a>
+                <a href="{{ url_for('masters.characters_index') }}">キャラ</a>
+                <a href="{{ url_for('delivery.index') }}">配送</a>
                 <a href="{{ url_for('budget.index') }}">予算</a>
             </nav>
             <form method="post" action="{{ url_for('auth.logout') }}" class="logout-form">
@@ -39,5 +43,16 @@
 
         {% block content %}{% endblock %}
     </main>
+    <button
+        type="button"
+        class="back-to-top"
+        aria-label="ページ上部へ戻る"
+    >↑ 上へ戻る</button>
+    <script>
+        document.querySelector(".back-to-top").addEventListener("click", (event) => {
+            event.preventDefault();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    </script>
 </body>
 </html>

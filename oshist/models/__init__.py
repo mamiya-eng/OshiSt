@@ -39,6 +39,8 @@ class Item:
     series_name: str | None = None
     category_name: str | None = None
     store_name: str | None = None
+    brand_name: str | None = None
+    character_names: str | None = None
 
 
 @dataclass
