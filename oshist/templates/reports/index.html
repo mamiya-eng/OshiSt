@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}分析 - OshiSt{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>分析</h1>
+</div>
+
+<form method="get" class="report-year-form">
+    <label>対象年
+        <select name="year">
+            {% for option_year in available_years %}
+            <option value="{{ option_year }}" {% if option_year == year %}selected{% endif %}>
+                {{ option_year }}年
+            </option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit">表示する</button>
+</form>
+
+{% if not has_data %}
+<p class="report-empty-message">この年の購入データはまだありません。</p>
+{% endif %}
+
+<section class="report-summary-grid" aria-label="{{ year }}年のまとめ">
+    <div class="card">
+        <h2>今年の合計</h2>
+        <p class="big-number">{{ total_amount|yen }}</p>
+    </div>
+    <div class="card">
+        <h2>一番使った月</h2>
+        {% if top_month %}
+            <p><strong>{{ top_month.label }}</strong></p>
+            <p>{{ top_month.amount|yen }}</p>
+        {% else %}
+            <p>-</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h2>一番使ったシリーズ</h2>
+        {% if top_series %}
+            <p><strong>{{ top_series.label }}</strong></p>
+            <p>{{ top_series.amount|yen }}</p>
+        {% else %}
+            <p>-</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h2>一番使ったカテゴリ</h2>
+        {% if top_category %}
+            <p><strong>{{ top_category.label }}</strong></p>
+            <p>{{ top_category.amount|yen }}</p>
+        {% else %}
+            <p>-</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="report-chart-grid">
+    <article class="card report-chart-card report-chart-wide">
+        <h2>月ごとの使用額</h2>
+        <div class="report-chart-container">
+            <canvas id="monthly-spending-chart"></canvas>
+        </div>
+    </article>
+
+    <article class="card report-chart-card">
+        <h2>シリーズごとの使用額</h2>
+        {% if series_chart.labels %}
+            <div class="report-chart-container report-chart-container-tall">
+                <canvas id="series-spending-chart"></canvas>
+            </div>
+        {% else %}
+            <p>表示できるシリーズ別データはありません。</p>
+        {% endif %}
+    </article>
+
+    <article class="card report-chart-card">
+        <h2>カテゴリごとの使用額</h2>
+        {% if category_chart.labels %}
+            <div class="report-chart-container report-chart-container-tall">
+                <canvas id="category-spending-chart"></canvas>
+            </div>
+        {% else %}
+            <p>表示できるカテゴリ別データはありません。</p>
+        {% endif %}
+    </article>
+</section>
+
+<script id="monthly-chart-data" type="application/json">{{ monthly_chart|tojson }}</script>
+<script id="series-chart-data" type="application/json">{{ series_chart|tojson }}</script>
+<script id="category-chart-data" type="application/json">{{ category_chart|tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
+{% endblock %}
