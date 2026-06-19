@@ -66,6 +66,7 @@
             <p>{{ item.series_name or 'シリーズ未設定' }} / {{ item.category_name or 'カテゴリ未設定' }}</p>
             {% if item.character_names %}<p>キャラ: {{ item.character_names }}</p>{% endif %}
             <p>所持数: {{ item.quantity }}</p>
+            <p>金額: {{ item.price|yen }}</p>
             {% if item.purchase_route_code %}
                 <p>{{ route_label(item.purchase_route_code) }}</p>
             {% endif %}

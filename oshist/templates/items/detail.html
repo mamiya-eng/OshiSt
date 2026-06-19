@@ -40,7 +40,7 @@
         <dd>{{ item.purchase_date or '-' }}</dd>
 
         <dt>金額</dt>
-        <dd>{% if item.price is not none %}{{ item.price }}円{% else %}-{% endif %}</dd>
+        <dd>{{ item.price|yen }}</dd>
 
         <dt>購入ルート</dt>
         <dd>{{ route_label if route_label != '-' else '未選択' }}</dd>

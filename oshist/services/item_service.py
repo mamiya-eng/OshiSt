@@ -1,3 +1,5 @@
+import hashlib
+import json
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
@@ -38,15 +40,8 @@ class ItemService:
         if purchase_url and not is_valid_purchase_url(purchase_url):
             raise ValueError("URLは http / https のみ許可されています。")
 
-        store_id = None
-        store_name = (form.get("store_name") or "").strip()
-        if store_name:
-            store_id = store_dao.find_or_create(user_id, store_name)
-
-        brand_id = None
-        brand_name = (form.get("brand_name") or "").strip()
-        if brand_name:
-            brand_id = brand_dao.find_or_create(user_id, brand_name)
+        store_name = (form.get("store_name") or "").strip() or None
+        brand_name = (form.get("brand_name") or "").strip() or None
 
         barcode = (form.get("barcode") or "").strip() or None
         if barcode and len(barcode) > 100:
@@ -69,8 +64,10 @@ class ItemService:
             "price": price,
             "purchase_route_code": purchase_route_code,
             "purchase_url": purchase_url,
-            "store_id": store_id,
-            "brand_id": brand_id,
+            "store_id": None,
+            "brand_id": None,
+            "store_name": store_name,
+            "brand_name": brand_name,
             "barcode": barcode,
             "series_id": series_id,
             "category_id": category_id,
@@ -166,6 +163,7 @@ class ItemService:
 
     def create_item(self, user_id: int, data: dict, image_path: str | None = None) -> int:
         """アイテムを登録する。"""
+        store_id, brand_id = self._resolve_store_and_brand_ids(user_id, data)
         return item_dao.create(
             user_id=user_id,
             name=data["name"],
@@ -175,8 +173,8 @@ class ItemService:
             price=data["price"],
             purchase_route_code=data["purchase_route_code"],
             purchase_url=data["purchase_url"],
-            store_id=data["store_id"],
-            brand_id=data["brand_id"],
+            store_id=store_id,
+            brand_id=brand_id,
             barcode=data["barcode"],
             series_id=data["series_id"],
             category_id=data["category_id"],
@@ -188,6 +186,66 @@ class ItemService:
             delivery_reminder_enabled=data["delivery_reminder_enabled"],
         )
 
+    @staticmethod
+    def _resolve_store_and_brand_ids(
+        user_id: int, data: dict
+    ) -> tuple[int | None, int | None]:
+        """入力済み名称をログインユーザー所有の購入店・ブランドIDへ変換する。"""
+        store_name = data.get("store_name")
+        brand_name = data.get("brand_name")
+        store_id = store_dao.find_or_create(user_id, store_name) if store_name else None
+        brand_id = brand_dao.find_or_create(user_id, brand_name) if brand_name else None
+        return store_id, brand_id
+
+    @staticmethod
+    def duplicate_fingerprint(data: dict) -> str:
+        """確認画面へ渡した入力内容を識別するフィンガープリントを作る。"""
+        serializable = {
+            key: value for key, value in data.items() if key != "image_file"
+        }
+        payload = json.dumps(
+            serializable,
+            ensure_ascii=False,
+            sort_keys=True,
+            default=str,
+            separators=(",", ":"),
+        )
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def find_duplicate_candidates(user_id: int, data: dict) -> tuple[str | None, list]:
+        """強い一致条件から順に正式登録済みのかぶり候補を探す。"""
+        barcode = data.get("barcode")
+        if barcode:
+            candidates = item_dao.find_registered_by_barcode(user_id, barcode)
+            if candidates:
+                return "barcode", candidates
+
+        candidates = item_dao.find_registered_by_identity(
+            user_id=user_id,
+            series_id=data.get("series_id"),
+            name=data["name"],
+            category_id=data.get("category_id"),
+        )
+        if candidates:
+            return "identity", candidates
+
+        candidates = item_dao.find_registered_by_name(
+            user_id, data["name"], limit=10
+        )
+        if candidates:
+            return "name", candidates
+        return None, []
+
+    @staticmethod
+    def increase_existing_quantity(
+        user_id: int, item_id: int, amount: int
+    ) -> bool:
+        """ユーザー所有の正式登録済みアイテムだけ所持数を増やす。"""
+        if amount < 1:
+            return False
+        return item_dao.increase_quantity(user_id, item_id, amount)
+
     def update_item(
         self, user_id: int, item_id: int, data: dict, image_path: str | None
     ) -> bool:
@@ -198,6 +256,7 @@ class ItemService:
                 delete_uploaded_image(image_path)
             return False
         final_image = image_path or existing.image_path
+        store_id, brand_id = self._resolve_store_and_brand_ids(user_id, data)
         try:
             updated = item_dao.update(
                 user_id=user_id,
@@ -209,8 +268,8 @@ class ItemService:
                 price=data["price"],
                 purchase_route_code=data["purchase_route_code"],
                 purchase_url=data["purchase_url"],
-                store_id=data["store_id"],
-                brand_id=data["brand_id"],
+                store_id=store_id,
+                brand_id=brand_id,
                 barcode=data["barcode"],
                 series_id=data["series_id"],
                 category_id=data["category_id"],

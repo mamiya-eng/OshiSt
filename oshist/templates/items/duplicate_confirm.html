@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}かぶり候補の確認 - OshiSt{% endblock %}
+{% block content %}
+<div class="duplicate-confirm">
+    <h1>似ているアイテムが見つかりました</h1>
+    <p>すでに登録済みの可能性があります。</p>
+    <p class="duplicate-match-reason">検知理由：{{ match_label }}</p>
+
+    <form method="post" action="{{ url_for('items.create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="duplicate_confirmed" value="1">
+        {% for key, value in pending_fields %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+
+        <div class="duplicate-candidate-list">
+            {% for candidate in candidates %}
+            <label class="duplicate-candidate">
+                <input
+                    type="radio"
+                    name="candidate_item_id"
+                    value="{{ candidate.id }}"
+                    {% if loop.first %}checked{% endif %}
+                >
+                <span class="duplicate-candidate-details">
+                    <strong>{{ candidate.name }}</strong>
+                    <span>シリーズ：{{ candidate.series_name or '未選択' }}</span>
+                    <span>カテゴリ：{{ candidate.category_name or '未選択' }}</span>
+                    <span>所持数：{{ candidate.quantity }}</span>
+                    <span>購入日：{{ candidate.purchase_date or '-' }}</span>
+                    <span>金額：{{ candidate.price|yen }}</span>
+                </span>
+            </label>
+            {% endfor %}
+        </div>
+
+        <div class="duplicate-actions">
+            <button type="submit" name="duplicate_action" value="increase">
+                所持数を増やす
+            </button>
+            <button
+                type="submit"
+                name="duplicate_action"
+                value="register"
+                class="button-secondary"
+            >
+                別アイテムとして登録する
+            </button>
+            <button
+                type="submit"
+                name="duplicate_action"
+                value="cancel"
+                class="button-secondary"
+            >
+                登録をやめる
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

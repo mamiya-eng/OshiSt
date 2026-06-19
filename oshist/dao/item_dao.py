@@ -165,6 +165,75 @@ def search(user_id: int, filters: dict) -> list[Item]:
         return [_row_to_item(row) for row in cursor.fetchall()]
 
 
+def find_registered_by_barcode(
+    user_id: int, barcode: str, limit: int = 10
+) -> list[Item]:
+    """同一ユーザーの正式登録済みアイテムをバーコード完全一致で取得する。"""
+    with get_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            _ITEM_SELECT
+            + """
+             WHERE i.user_id = %s
+               AND i.draft_flg = FALSE
+               AND i.barcode = %s
+            """
+            + _ITEM_GROUP_BY
+            + " ORDER BY i.updated_at DESC LIMIT %s",
+            (user_id, barcode, limit),
+        )
+        return [_row_to_item(row) for row in cursor.fetchall()]
+
+
+def find_registered_by_identity(
+    user_id: int,
+    series_id: int | None,
+    name: str,
+    category_id: int | None,
+    limit: int = 10,
+) -> list[Item]:
+    """シリーズ・商品名・カテゴリが一致する正式登録済みアイテムを取得する。"""
+    with get_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            _ITEM_SELECT
+            + """
+             WHERE i.user_id = %s
+               AND i.draft_flg = FALSE
+               AND i.series_id <=> %s
+               AND i.name = %s
+               AND i.category_id <=> %s
+            """
+            + _ITEM_GROUP_BY
+            + " ORDER BY i.updated_at DESC LIMIT %s",
+            (user_id, series_id, name, category_id, limit),
+        )
+        return [_row_to_item(row) for row in cursor.fetchall()]
+
+
+def find_registered_by_name(
+    user_id: int, keyword: str, limit: int = 10
+) -> list[Item]:
+    """商品名の中間一致で正式登録済み候補を取得する。"""
+    with get_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            _ITEM_SELECT
+            + """
+             WHERE i.user_id = %s
+               AND i.draft_flg = FALSE
+               AND (
+                   i.name LIKE %s
+                   OR %s LIKE CONCAT('%%', i.name, '%%')
+               )
+            """
+            + _ITEM_GROUP_BY
+            + " ORDER BY i.updated_at DESC LIMIT %s",
+            (user_id, f"%{keyword}%", keyword, limit),
+        )
+        return [_row_to_item(row) for row in cursor.fetchall()]
+
+
 def count_all(user_id: int) -> int:
     """正式登録済みアイテム数を取得する。"""
     with get_connection() as conn:
@@ -414,6 +483,24 @@ def update_delivery(
                 item_id,
                 user_id,
             ),
+        )
+        return cursor.rowcount > 0
+
+
+def increase_quantity(user_id: int, item_id: int, amount: int) -> bool:
+    """ユーザー所有の正式登録済みアイテムの所持数を加算する。"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            UPDATE items
+               SET quantity = quantity + %s,
+                   updated_at = %s
+             WHERE id = %s
+               AND user_id = %s
+               AND draft_flg = FALSE
+            """,
+            (amount, datetime.now(), item_id, user_id),
         )
         return cursor.rowcount > 0
 

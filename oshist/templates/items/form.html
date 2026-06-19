@@ -87,6 +87,7 @@
                 {% endfor %}
             </datalist>
         </label>
+        <p class="form-help">過去に入力した購入店が候補に出ます。新しい名前もそのまま入力できます。</p>
         <label>ブランド <span class="field-mark optional">※任意</span>
             <input type="text" name="brand_name" list="brand-list" value="{{ item.brand_name if item and item.brand_name else '' }}" maxlength="100">
             <datalist id="brand-list">
@@ -95,6 +96,7 @@
                 {% endfor %}
             </datalist>
         </label>
+        <p class="form-help">過去に入力したブランドが候補に出ます。新しい名前もそのまま入力できます。</p>
         <label>バーコード <span class="field-mark optional">※任意</span>
             <input type="text" name="barcode" value="{{ item.barcode if item and item.barcode else '' }}" maxlength="100">
         </label>

@@ -8,6 +8,7 @@ from oshist.routes.home import home_bp
 from oshist.routes.images import images_bp
 from oshist.routes.items import items_bp
 from oshist.routes.masters import masters_bp
+from oshist.services.dashboard_service import DashboardService
 
 
 def create_app(config_class=Config):
@@ -23,6 +24,7 @@ def create_app(config_class=Config):
     app.register_blueprint(delivery_bp)
     app.register_blueprint(budget_bp)
     app.register_blueprint(images_bp)
+    app.add_template_filter(DashboardService.format_yen, "yen")
 
     @app.context_processor
     def inject_csrf_token():

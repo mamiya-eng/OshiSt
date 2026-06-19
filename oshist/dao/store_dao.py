@@ -5,7 +5,14 @@ def list_by_user(user_id: int) -> list[dict]:
     with get_connection() as conn:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT id, name FROM stores WHERE user_id = %s ORDER BY name",
+            """
+            SELECT id, name
+            FROM stores
+            WHERE user_id = %s
+              AND name IS NOT NULL
+              AND TRIM(name) <> ''
+            ORDER BY name
+            """,
             (user_id,),
         )
         return cursor.fetchall()

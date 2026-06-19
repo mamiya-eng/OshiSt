@@ -33,6 +33,8 @@ class DashboardService:
         }
 
     @staticmethod
-    def format_yen(value: Decimal | int | float) -> str:
+    def format_yen(value: Decimal | int | float | None) -> str:
+        if value is None:
+            return "-"
         amount = int(value)
         return f"{amount:,}円"
