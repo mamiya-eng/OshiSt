@@ -21,6 +21,7 @@
                 <a href="{{ url_for('delivery.index') }}">配送</a>
                 <a href="{{ url_for('budget.index') }}">予算</a>
                 <a href="{{ url_for('reports.index') }}">分析</a>
+                <a href="{{ url_for('reports.yearly') }}">年間レポート</a>
             </nav>
             <form method="post" action="{{ url_for('auth.logout') }}" class="logout-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

@@ -100,6 +100,87 @@ def category_spending(user_id: int, year: int, limit: int = 10) -> list[dict]:
         return cursor.fetchall()
 
 
+def yearly_item_counts(user_id: int, year: int) -> dict:
+    """Return registered item rows and total quantity for the selected year."""
+    with get_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT
+                COUNT(*) AS item_count,
+                COALESCE(SUM(quantity), 0) AS total_quantity
+            FROM items
+            WHERE user_id = %s
+              AND draft_flg = FALSE
+              AND purchase_date IS NOT NULL
+              AND YEAR(purchase_date) = %s
+            """,
+            (user_id, year),
+        )
+        return cursor.fetchone()
+
+
+def top_purchases(user_id: int, year: int, limit: int = 5) -> list[dict]:
+    """Return the highest-value purchases for the selected year."""
+    with get_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT
+                i.id,
+                i.name,
+                COALESCE(s.name, '未設定') AS series_name,
+                COALESCE(c.name, '未設定') AS category_name,
+                i.purchase_date,
+                (i.price * i.quantity) AS amount
+            FROM items i
+            LEFT JOIN series s
+              ON s.id = i.series_id
+             AND s.user_id = i.user_id
+            LEFT JOIN categories c
+              ON c.id = i.category_id
+             AND c.user_id = i.user_id
+            WHERE i.user_id = %s
+              AND i.draft_flg = FALSE
+              AND i.price IS NOT NULL
+              AND i.purchase_date IS NOT NULL
+              AND YEAR(i.purchase_date) = %s
+            ORDER BY amount DESC, i.purchase_date, i.id
+            LIMIT %s
+            """,
+            (user_id, year, limit),
+        )
+        return cursor.fetchall()
+
+
+def category_purchase_counts(
+    user_id: int, year: int, limit: int = 5
+) -> list[dict]:
+    """Return categories ranked by registered item row count."""
+    with get_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT
+                COALESCE(c.name, '未設定') AS label,
+                COUNT(*) AS item_count
+            FROM items i
+            LEFT JOIN categories c
+              ON c.id = i.category_id
+             AND c.user_id = i.user_id
+            WHERE i.user_id = %s
+              AND i.draft_flg = FALSE
+              AND i.purchase_date IS NOT NULL
+              AND YEAR(i.purchase_date) = %s
+            GROUP BY i.category_id, c.name
+            ORDER BY item_count DESC, label
+            LIMIT %s
+            """,
+            (user_id, year, limit),
+        )
+        return cursor.fetchall()
+
+
 def decimal_amount(value) -> Decimal:
     """DB集計値をDecimalへ揃える。"""
     return Decimal(str(value or 0))

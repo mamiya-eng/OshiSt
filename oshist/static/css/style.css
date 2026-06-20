@@ -500,6 +500,42 @@ fieldset {
     min-height: 380px;
 }
 
+.yearly-report-intro {
+    margin-bottom: 1rem;
+    padding: 1rem 1.25rem;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    background: #eff6ff;
+}
+
+.yearly-report-intro p {
+    margin: 0;
+}
+
+.yearly-report-section {
+    margin-top: 1.5rem;
+}
+
+.yearly-report-section h2 {
+    margin-bottom: 0.75rem;
+}
+
+.yearly-rank {
+    width: 3.5rem;
+    color: var(--muted);
+    text-align: center;
+}
+
+.yearly-month-table {
+    max-width: 560px;
+}
+
+.yearly-month-table td:last-child,
+.yearly-purchase-amount {
+    text-align: right;
+    white-space: nowrap;
+}
+
 .data-table th,
 .data-table td {
     padding: 0.75rem;

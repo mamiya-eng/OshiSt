@@ -85,3 +85,65 @@ class ReportService:
                 "amounts": category_amounts,
             },
         }
+
+    def get_yearly_report(self, user_id: int, raw_year: str | None) -> dict:
+        """Build the annual report using the existing graph aggregates."""
+        report = self.get_report(user_id, raw_year)
+        year = report["year"]
+
+        counts = report_dao.yearly_item_counts(user_id, year)
+        item_count = int(counts["item_count"] or 0)
+        total_quantity = int(counts["total_quantity"] or 0)
+
+        top_purchases = report_dao.top_purchases(user_id, year, limit=5)
+        for purchase in top_purchases:
+            purchase["amount"] = int(
+                report_dao.decimal_amount(purchase["amount"])
+            )
+
+        category_counts = report_dao.category_purchase_counts(
+            user_id, year, limit=5
+        )
+        for category in category_counts:
+            category["item_count"] = int(category["item_count"] or 0)
+
+        has_yearly_data = item_count > 0
+        if has_yearly_data:
+            narrative = (
+                f"{year}年は合計{report['total_amount']:,}円の"
+                "推し活支出がありました。"
+            )
+            if report["top_month"]:
+                narrative += (
+                    f" 特に{report['top_month']['label']}の使用額が"
+                    "もっとも多くなりました。"
+                )
+            if (
+                report["top_series"]
+                and report["top_series"]["label"] != "未設定"
+            ):
+                narrative += (
+                    f" {report['top_series']['label']}関連の購入が"
+                    "支出の上位でした。"
+                )
+        else:
+            narrative = "この年の購入データはまだありません"
+
+        report.update(
+            {
+                "has_yearly_data": has_yearly_data,
+                "item_count": item_count,
+                "total_quantity": total_quantity,
+                "top_purchases": top_purchases,
+                "category_purchase_counts": category_counts,
+                "narrative": narrative,
+                "monthly_rows": [
+                    {"label": label, "amount": amount}
+                    for label, amount in zip(
+                        report["monthly_chart"]["labels"],
+                        report["monthly_chart"]["amounts"],
+                    )
+                ],
+            }
+        )
+        return report

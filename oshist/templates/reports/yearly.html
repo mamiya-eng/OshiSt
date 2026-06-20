@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}年間レポート - OshiSt{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>年間レポート</h1>
+    <a class="button secondary" href="{{ url_for('reports.index', year=year) }}">分析に戻る</a>
+</div>
+
+<form method="get" class="report-year-form">
+    <label>対象年
+        <select name="year">
+            {% for option_year in available_years %}
+            <option value="{{ option_year }}" {% if option_year == year %}selected{% endif %}>
+                {{ option_year }}年
+            </option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit">表示する</button>
+</form>
+
+<section class="yearly-report-intro" aria-label="{{ year }}年の振り返り">
+    <p>{{ narrative }}</p>
+</section>
+
+{% if not has_yearly_data %}
+<p class="report-empty-message">この年の購入データはまだありません。</p>
+{% endif %}
+
+<section class="report-summary-grid" aria-label="{{ year }}年のまとめ">
+    <div class="card">
+        <h2>年間の合計使用額</h2>
+        <p class="big-number">{{ total_amount|yen }}</p>
+    </div>
+    <div class="card">
+        <h2>登録したアイテム</h2>
+        <p class="big-number">{{ item_count }}件</p>
+        <p>合計 {{ total_quantity }}個</p>
+    </div>
+    <div class="card">
+        <h2>一番使った月</h2>
+        {% if top_month %}
+            <p><strong>{{ top_month.label }}</strong></p>
+            <p>{{ top_month.amount|yen }}</p>
+        {% else %}
+            <p>-</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h2>一番使ったシリーズ</h2>
+        {% if top_series %}
+            <p><strong>{{ top_series.label }}</strong></p>
+            <p>{{ top_series.amount|yen }}</p>
+        {% else %}
+            <p>-</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h2>一番使ったカテゴリ</h2>
+        {% if top_category %}
+            <p><strong>{{ top_category.label }}</strong></p>
+            <p>{{ top_category.amount|yen }}</p>
+        {% else %}
+            <p>-</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="yearly-report-section">
+    <h2>金額が大きかった購入 TOP5</h2>
+    {% if top_purchases %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="yearly-rank">順位</th>
+                <th>商品名</th>
+                <th>シリーズ</th>
+                <th>カテゴリ</th>
+                <th>購入日</th>
+                <th>金額</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in top_purchases %}
+            <tr>
+                <td class="yearly-rank">{{ loop.index }}</td>
+                <td>{{ purchase.name }}</td>
+                <td>{{ purchase.series_name }}</td>
+                <td>{{ purchase.category_name }}</td>
+                <td>{{ purchase.purchase_date or "-" }}</td>
+                <td class="yearly-purchase-amount">{{ purchase.amount|yen }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>表示できる購入データはありません。</p>
+    {% endif %}
+</section>
+
+<section class="yearly-report-section">
+    <h2>よく買ったカテゴリ TOP5</h2>
+    {% if category_purchase_counts %}
+    <table class="data-table yearly-month-table">
+        <thead>
+            <tr>
+                <th class="yearly-rank">順位</th>
+                <th>カテゴリ</th>
+                <th>登録件数</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in category_purchase_counts %}
+            <tr>
+                <td class="yearly-rank">{{ loop.index }}</td>
+                <td>{{ category.label }}</td>
+                <td>{{ category.item_count }}件</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>表示できるカテゴリ別データはありません。</p>
+    {% endif %}
+</section>
+
+<section class="yearly-report-section">
+    <h2>月ごとの使用額</h2>
+    <table class="data-table yearly-month-table">
+        <thead>
+            <tr>
+                <th>月</th>
+                <th>使用額</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for month in monthly_rows %}
+            <tr>
+                <td>{{ month.label }}</td>
+                <td>{{ month.amount|yen }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

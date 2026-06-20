@@ -15,3 +15,13 @@ def index():
         get_current_user_id(), request.args.get("year")
     )
     return render_template("reports/index.html", **report)
+
+
+@reports_bp.route("/yearly")
+@login_required
+def yearly():
+    """ログインユーザーの年間レポートを表示する。"""
+    report = report_service.get_yearly_report(
+        get_current_user_id(), request.args.get("year")
+    )
+    return render_template("reports/yearly.html", **report)
