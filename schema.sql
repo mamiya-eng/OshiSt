@@ -63,7 +63,6 @@ CREATE TABLE IF NOT EXISTS items (
     quantity INT NOT NULL DEFAULT 1,
     memo TEXT NULL,
     image_path VARCHAR(255) NULL,
-    barcode VARCHAR(100) NULL,
     store_id INT NULL,
     brand_id INT NULL,
     purchase_route_code VARCHAR(30) NULL,
@@ -127,4 +126,3 @@ CREATE TABLE IF NOT EXISTS budgets (
 CREATE INDEX idx_items_user_date ON items(user_id, purchase_date);
 CREATE INDEX idx_items_user_series ON items(user_id, series_id);
 CREATE INDEX idx_items_user_category ON items(user_id, category_id);
-CREATE INDEX idx_items_user_barcode ON items(user_id, barcode);

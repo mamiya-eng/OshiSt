@@ -14,7 +14,6 @@ items_bp = Blueprint("items", __name__, url_prefix="/items")
 item_service = ItemService()
 _PENDING_DUPLICATE_KEY = "pending_duplicate_registration"
 _DUPLICATE_MATCH_LABELS = {
-    "barcode": "バーコードが一致",
     "identity": "シリーズ・商品名・カテゴリが一致",
     "name": "商品名が類似",
 }

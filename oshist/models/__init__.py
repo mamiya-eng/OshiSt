@@ -28,7 +28,6 @@ class Item:
     price: Decimal | None = None
     memo: str | None = None
     image_path: str | None = None
-    barcode: str | None = None
     store_id: int | None = None
     brand_id: int | None = None
     purchase_route_code: str | None = None

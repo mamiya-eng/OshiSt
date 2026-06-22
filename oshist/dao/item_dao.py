@@ -8,7 +8,7 @@ _ITEM_SELECT = """
     SELECT
         i.id, i.user_id, i.series_id, i.category_id, i.name,
         i.purchase_date, i.price, i.quantity, i.memo, i.image_path,
-        i.barcode, i.store_id, i.brand_id, i.purchase_route_code,
+        i.store_id, i.brand_id, i.purchase_route_code,
         i.purchase_url, i.favorite, i.expected_delivery_date,
         i.delivery_status, i.delivery_reminder_enabled, i.draft_flg,
         i.created_at, i.updated_at,
@@ -40,7 +40,7 @@ _ITEM_GROUP_BY = """
     GROUP BY
         i.id, i.user_id, i.series_id, i.category_id, i.name,
         i.purchase_date, i.price, i.quantity, i.memo, i.image_path,
-        i.barcode, i.store_id, i.brand_id, i.purchase_route_code,
+        i.store_id, i.brand_id, i.purchase_route_code,
         i.purchase_url, i.favorite, i.expected_delivery_date,
         i.delivery_status, i.delivery_reminder_enabled, i.draft_flg,
         i.created_at, i.updated_at,
@@ -165,26 +165,6 @@ def search(user_id: int, filters: dict) -> list[Item]:
         return [_row_to_item(row) for row in cursor.fetchall()]
 
 
-def find_registered_by_barcode(
-    user_id: int, barcode: str, limit: int = 10
-) -> list[Item]:
-    """同一ユーザーの正式登録済みアイテムをバーコード完全一致で取得する。"""
-    with get_connection() as conn:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(
-            _ITEM_SELECT
-            + """
-             WHERE i.user_id = %s
-               AND i.draft_flg = FALSE
-               AND i.barcode = %s
-            """
-            + _ITEM_GROUP_BY
-            + " ORDER BY i.updated_at DESC LIMIT %s",
-            (user_id, barcode, limit),
-        )
-        return [_row_to_item(row) for row in cursor.fetchall()]
-
-
 def find_registered_by_identity(
     user_id: int,
     series_id: int | None,
@@ -256,7 +236,6 @@ def create(
     purchase_url: str | None = None,
     store_id: int | None = None,
     brand_id: int | None = None,
-    barcode: str | None = None,
     series_id: int | None = None,
     category_id: int | None = None,
     character_ids: list[int] | None = None,
@@ -274,9 +253,9 @@ def create(
             INSERT INTO items (
                 user_id, series_id, category_id, name, quantity, draft_flg,
                 purchase_date, price, purchase_route_code, purchase_url,
-                store_id, brand_id, barcode, memo, image_path, delivery_status,
+                store_id, brand_id, memo, image_path, delivery_status,
                 expected_delivery_date, delivery_reminder_enabled
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 user_id,
@@ -291,7 +270,6 @@ def create(
                 purchase_url,
                 store_id,
                 brand_id,
-                barcode,
                 memo,
                 image_path,
                 delivery_status,
@@ -316,7 +294,6 @@ def update(
     purchase_url: str | None = None,
     store_id: int | None = None,
     brand_id: int | None = None,
-    barcode: str | None = None,
     series_id: int | None = None,
     category_id: int | None = None,
     character_ids: list[int] | None = None,
@@ -343,7 +320,7 @@ def update(
                 name = %s, quantity = %s, draft_flg = %s,
                 purchase_date = %s, price = %s,
                 purchase_route_code = %s, purchase_url = %s,
-                store_id = %s, brand_id = %s, barcode = %s,
+                store_id = %s, brand_id = %s,
                 memo = %s, image_path = %s,
                 delivery_status = %s, expected_delivery_date = %s,
                 delivery_reminder_enabled = %s, updated_at = %s
@@ -361,7 +338,6 @@ def update(
                 purchase_url,
                 store_id,
                 brand_id,
-                barcode,
                 memo,
                 image_path,
                 delivery_status,

@@ -43,10 +43,6 @@ class ItemService:
         store_name = (form.get("store_name") or "").strip() or None
         brand_name = (form.get("brand_name") or "").strip() or None
 
-        barcode = (form.get("barcode") or "").strip() or None
-        if barcode and len(barcode) > 100:
-            raise ValueError("バーコードは100文字以内で入力してください。")
-
         series_id = self._optional_owned_id(
             user_id, form.get("series_id"), series_dao.find_by_id, "シリーズ"
         )
@@ -68,7 +64,6 @@ class ItemService:
             "brand_id": None,
             "store_name": store_name,
             "brand_name": brand_name,
-            "barcode": barcode,
             "series_id": series_id,
             "category_id": category_id,
             "character_ids": character_ids,
@@ -175,7 +170,6 @@ class ItemService:
             purchase_url=data["purchase_url"],
             store_id=store_id,
             brand_id=brand_id,
-            barcode=data["barcode"],
             series_id=data["series_id"],
             category_id=data["category_id"],
             character_ids=data["character_ids"],
@@ -215,12 +209,6 @@ class ItemService:
     @staticmethod
     def find_duplicate_candidates(user_id: int, data: dict) -> tuple[str | None, list]:
         """強い一致条件から順に正式登録済みのかぶり候補を探す。"""
-        barcode = data.get("barcode")
-        if barcode:
-            candidates = item_dao.find_registered_by_barcode(user_id, barcode)
-            if candidates:
-                return "barcode", candidates
-
         candidates = item_dao.find_registered_by_identity(
             user_id=user_id,
             series_id=data.get("series_id"),
@@ -270,7 +258,6 @@ class ItemService:
                 purchase_url=data["purchase_url"],
                 store_id=store_id,
                 brand_id=brand_id,
-                barcode=data["barcode"],
                 series_id=data["series_id"],
                 category_id=data["category_id"],
                 character_ids=data["character_ids"],
