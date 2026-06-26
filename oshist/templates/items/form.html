@@ -17,7 +17,9 @@
             <input type="text" name="name" required maxlength="200" value="{{ item.name if item else '' }}">
         </label>
         <label>所持数 <span class="field-mark required">※必須</span>
-            <input type="number" name="quantity" min="1" value="{{ item.quantity if item else 1 }}">
+            <input type="number" name="quantity" min="1" step="1" required value="{{ item.quantity if item else 1 }}"
+            oninvalid="this.setCustomValidity('小数や英語は入力できません。1以上の整数を入力してください。')"
+            oninput="this.setCustomValidity('')">
         </label>
     </fieldset>
 
@@ -47,7 +49,7 @@
             <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
         </label>
         {% if item and item.image_path %}
-            <p class="form-help">現在の画像があります。新しい画像を選ぶと差し替えられます。</p>
+            <p class="form-help">登録済みの画像があります。変更する場合は、新しい画像を選んでください。</p>
         {% endif %}
 
         <label>シリーズ <span class="field-mark optional">※任意</span>
@@ -75,7 +77,7 @@
                     <span>{{ character.name }} / {{ character.series_name or 'シリーズ未選択' }}</span>
                 </label>
                 {% else %}
-                <p class="empty-option-message">選択できるキャラがありません。</p>
+                <p class="empty-option-message">選択できるキャラがいません。</p>
                 {% endfor %}
             </div>
         </div>

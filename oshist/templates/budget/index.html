@@ -9,11 +9,15 @@
         <input type="number" name="year" value="{{ year }}" required>
     </label>
     <label>月
-        <input type="number" name="month" min="1" max="12" value="{{ month }}" required>
+        <input type="number" name="month" min="1" max="12" step="1" value="{{ month }}" required
+        oninvalid="this.setCustmValidity('月は小数や英語ではなく、1〜12の整数で入力してください。')"
+        oninput="this.setCustmValidity('')">
     </label>
     <label>予算額（円）
         <input type="number" name="amount" min="1" step="1" required
-               value="{{ summary.budget_amount|int if summary else '' }}">
+               value="{{ summary.budget_amount|int if summary else '' }}"
+               oninvalid="this.setCustmValidity('小数や英語ではなく、1円以上の整数で入力してください。')"
+               oninput="this.setCustmValidity('')">
     </label>
     <button type="submit">保存</button>
 </form>
